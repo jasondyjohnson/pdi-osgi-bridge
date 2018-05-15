@@ -42,7 +42,6 @@ import org.pentaho.di.osgi.service.notifier.DelayedInstanceNotifierFactory;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifier;
 import org.pentaho.di.osgi.service.notifier.DelayedServiceNotifierListener;
 import org.pentaho.di.osgi.service.tracker.OSGIServiceTracker;
-import org.pentaho.di.osgi.service.tracker.PdiPluginSupplementalClassMappingsTracker;
 import org.pentaho.osgi.api.BeanFactory;
 import org.pentaho.osgi.api.BeanFactoryLocator;
 import org.pentaho.osgi.api.ProxyUnwrapper;
@@ -51,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -75,20 +73,19 @@ public class OSGIPluginTracker {
   private BundleContext context;
   private BeanFactoryLocator lookup;
   private ProxyUnwrapper proxyUnwrapper;
-  private Map<Class, OSGIServiceTracker> trackers = new WeakHashMap<Class, OSGIServiceTracker>();
+  private Map<Class, OSGIServiceTracker> trackers = new MapMaker().makeMap();
   private Map<Class, List<OSGIServiceLifecycleListener>> listeners =
-    new WeakHashMap<Class, List<OSGIServiceLifecycleListener>>();
+    new MapMaker().makeMap();
   private Map<Object, List<ServiceReferenceListener>> instanceListeners =
-    new WeakHashMap<Object, List<ServiceReferenceListener>>();
-  // MapMaker provides a ConcurrentMap with weak keys and weak values
+    new MapMaker().makeMap();
   private Map<Object, ServiceReference> instanceToReferenceMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().makeMap();
   private Map<ServiceReference, Object> referenceToInstanceMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().makeMap();
   private Map<BeanFactory, Bundle> beanFactoryToBundleMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().makeMap();
   private Map<Object, BeanFactory> beanToFactoryMap =
-    new MapMaker().weakKeys().weakValues().makeMap();
+    new MapMaker().makeMap();
   private Log logger = LogFactory.getLog( getClass().getName() );
   private List<Class<? extends PluginTypeInterface>> queuedClasses =
     new ArrayList<Class<? extends PluginTypeInterface>>();
@@ -277,7 +274,7 @@ public class OSGIPluginTracker {
     }
     Bundle objectBundle = reference.getBundle();
     if ( objectBundle == null ) {
-      throw new OSGIPluginTrackerException( "Service's Bundle is null, service no longer valid." );
+      throw new OSGIPluginTrackerException( "Service's Bundle is null, service no longer valid. " + reference.toString() );
     }
     BeanFactory factory = lookup.getBeanFactory( objectBundle );
     if ( factory == null ) {

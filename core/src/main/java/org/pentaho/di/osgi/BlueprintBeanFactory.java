@@ -44,7 +44,7 @@ public class BlueprintBeanFactory {
     try {
       return OSGIPluginTracker.getInstance().findOrCreateBeanFactoryFor( container ).getInstance( beanId, pluginClass );
     } catch ( OSGIPluginTrackerException e ) {
-      logger.error( "Error retriving plugin bean from blueprint container", e );
+      logger.error( "Error retrieving plugin bean from blueprint container " + container.getClass().getName() + " for plugin class " + pluginClass.toString(), e );
     }
     return null;
   }
